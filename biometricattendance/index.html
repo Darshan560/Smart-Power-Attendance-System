@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fingerprint Attendance</title>
+    <script>
+        function checkAttendance() {
+            let fingerprintID = document.getElementById("fingerprint_id").value;
+            if (!fingerprintID) {
+                alert("Please enter a Fingerprint ID!");
+                return;
+            }
+
+            fetch("mark_attendance.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fingerprint_id: fingerprintID })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    document.getElementById("markInTimeButton").style.display = data.in_time ? "none" : "block";
+                    document.getElementById("markOutTimeButton").style.display = data.out_time || !data.in_time ? "none" : "block";
+                    document.getElementById("statusMessage").innerText = "Attendance Status: " + (data.in_time ? (data.out_time ? "Present" : "In-Time Marked") : "Not Marked");
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function markAttendance(action) {
+            let fingerprintID = document.getElementById("fingerprint_id").value;
+            if (!fingerprintID) {
+                alert("Please enter a Fingerprint ID!");
+                return;
+            }
+
+            fetch("mark_attendance.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fingerprint_id: fingerprintID, action: action })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                checkAttendance();
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+    <h2>Fingerprint Biometric Attendance</h2>
+    <label for="fingerprint_id">Enter Fingerprint ID:</label>
+    <input type="number" id="fingerprint_id" required>
+    <button onclick="checkAttendance()">Check Attendance</button>
+    
+    <p id="statusMessage">Attendance Status: Not Checked</p>
+
+    <button id="markInTimeButton" style="display:none;" onclick="markAttendance('in_time')">Mark In-Time</button>
+    <button id="markOutTimeButton" style="display:none;" onclick="markAttendance('out_time')">Mark Out-Time</button>
+</body>
+</html>
